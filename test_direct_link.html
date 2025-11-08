@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Pass Link Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .pass-link {
+            display: block;
+            padding: 20px;
+            background: #007AFF;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .pass-link:hover {
+            background: #0051D5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wallet Pass Test</h1>
+    <p>Click the link below to test opening the pass file directly:</p>
+    
+    <a href="/api/download/Ai_engineer_.pkpass" class="pass-link">
+        Open Wallet Pass
+    </a>
+    
+    <p><strong>Instructions:</strong></p>
+    <ul>
+        <li><strong>On iPhone:</strong> Tap the link above. Safari should prompt "Add to Wallet"</li>
+        <li><strong>On Mac:</strong> Click the link. It should open in Wallet app</li>
+        <li><strong>If it downloads:</strong> Double-click the downloaded file</li>
+    </ul>
+    
+    <h2>Alternative: Direct File Access</h2>
+    <p>You can also access the file directly from the output folder:</p>
+    <code>file:///Users/balaji/Desktop/Shiva/output/Ai_engineer_.pkpass</code>
+    <p>Copy this path and paste it in Safari's address bar.</p>
+</body>
+</html>
+

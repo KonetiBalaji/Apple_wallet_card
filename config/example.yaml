@@ -1,0 +1,49 @@
+pass:
+  passTypeIdentifier: "pass.com.example.businesscard"
+  serialNumber: "balaji-001"
+  teamIdentifier: ""
+  organizationName: "Balaji Koneti"
+  description: "Balaji Koneti - Digital Business Card"
+  logoText: "Balaji Koneti"
+  foregroundColor: "rgb(255,255,255)"
+  backgroundColor: "rgb(0,77,153)"
+  labelColor: "rgb(255,255,255)"
+  fields:
+    primaryFields:
+      - key: "name"
+        label: "Name"
+        value: "Balaji Koneti"
+    secondaryFields:
+      - key: "title"
+        label: "Title"
+        value: "Data Scientist"
+      - key: "email"
+        label: "Email"
+        value: "koneti.balaji08@gmail.com"
+    auxiliaryFields:
+      - key: "phone"
+        label: "Phone"
+        value: "+1 (928) 600-3388"
+    backFields:
+      - key: "linkedin"
+        label: "LinkedIn"
+        value: "linkedin.com/in/balaji-koneti"
+      - key: "github"
+        label: "GitHub"
+        value: "github.com/KonetiBalaji"
+      - key: "website"
+        label: "Website"
+        value: "balaji-konetidev.vercel.app"
+
+assets:
+  icon: "assets/user/icon.png"
+  logo: "assets/user/logo.png"
+  photo: "assets/user/photo.png"
+
+qr_data: "https://balaji-konetidev.vercel.app"
+
+signing:
+  enabled: false
+  cert_file: null
+  key_file: null
+

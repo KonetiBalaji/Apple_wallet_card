@@ -1,0 +1,49 @@
+pass:
+  passTypeIdentifier: "pass.com.example.generic"
+  serialNumber: "123456789"
+  teamIdentifier: ""
+  organizationName: "My Organization"
+  description: "Digital Business Card"
+  logoText: ""
+  foregroundColor: "rgb(255,255,255)"
+  backgroundColor: "rgb(0,77,153)"
+  labelColor: "rgb(255,255,255)"
+  fields:
+    primaryFields:
+      - key: "name"
+        label: "Name"
+        value: "Your Name"
+    secondaryFields:
+      - key: "title"
+        label: "Title"
+        value: "Your Title"
+      - key: "email"
+        label: "Email"
+        value: "your.email@example.com"
+    auxiliaryFields:
+      - key: "phone"
+        label: "Phone"
+        value: "+1 (555) 123-4567"
+    backFields:
+      - key: "linkedin"
+        label: "LinkedIn"
+        value: "linkedin.com/in/yourprofile"
+      - key: "github"
+        label: "GitHub"
+        value: "github.com/yourusername"
+      - key: "website"
+        label: "Website"
+        value: "https://yourwebsite.com"
+
+assets:
+  icon: null
+  logo: null
+  photo: null
+
+qr_data: "https://yourwebsite.com"
+
+signing:
+  enabled: false
+  cert_file: null
+  key_file: null
+
