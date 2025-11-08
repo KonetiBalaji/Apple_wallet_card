@@ -11,7 +11,7 @@ class BoldRedTemplate(BaseTemplate):
         """Get bold red template configuration."""
         return {
             "pass": {
-                "pass.com.example.businesscard",
+                "passTypeIdentifier": "pass.com.example.businesscard",
                 "organizationName": "Business Card",
                 "description": "Bold Red Business Card",
                 "foregroundColor": "rgb(255,255,255)",

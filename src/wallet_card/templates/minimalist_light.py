@@ -11,7 +11,7 @@ class MinimalistLightTemplate(BaseTemplate):
         """Get minimalist light template configuration."""
         return {
             "pass": {
-                "pass.com.example.businesscard",
+                "passTypeIdentifier": "pass.com.example.businesscard",
                 "organizationName": "Business Card",
                 "description": "Minimalist Light Business Card",
                 "foregroundColor": "rgb(0,0,0)",

@@ -18,15 +18,21 @@ from ..core.validator import Validator, ValidationError
 
 # Get the directory where this file is located
 BASE_DIR = Path(__file__).parent
-app = Flask(__name__, template_folder=str(BASE_DIR / "templates"))
+# Use absolute path for templates
+template_path = BASE_DIR / "templates"
+app = Flask(__name__, template_folder=str(template_path.resolve()))
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
-UPLOAD_FOLDER = "assets/user"
+# Use absolute paths for Vercel compatibility
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.resolve()
+UPLOAD_FOLDER = PROJECT_ROOT / "assets" / "user"
+OUTPUT_FOLDER = PROJECT_ROOT / "output"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 # Ensure upload directory exists
-Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
+UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
 
 
 def allowed_file(filename: str) -> bool:
@@ -100,12 +106,14 @@ def generate():
             },
         }
         
-        # Auto-detect and use certificate if available
+        # Auto-detect and use certificate if available (use absolute paths)
         cert_file = None
         key_file = None
-        if Path("signer.pem").exists() and Path("signer.key").exists():
-            cert_file = "signer.pem"
-            key_file = "signer.key"
+        cert_path = PROJECT_ROOT / "signer.pem"
+        key_path = PROJECT_ROOT / "signer.key"
+        if cert_path.exists() and key_path.exists():
+            cert_file = str(cert_path)
+            key_file = str(key_path)
             config["signing"]["enabled"] = True
             config["signing"]["cert_file"] = cert_file
             config["signing"]["key_file"] = key_file
@@ -129,7 +137,10 @@ def generate():
         }
         
         template_class = template_classes.get(template_style, ClassicBlueTemplate)
+        # Pass absolute paths to template for Vercel compatibility
         template = template_class(
+            assets_dir=str(UPLOAD_FOLDER),
+            output_dir=str(OUTPUT_FOLDER),
             cert_file=cert_file,
             key_file=key_file,
         )
@@ -171,7 +182,7 @@ def generate():
                 return jsonify({"success": False, "errors": [f"Generated pass file not found: {output_path}"]}), 500
 
             pass_url = f"http://{host}/api/download/{pass_filename}"
-            qr_path = _generate_qr_code_for_wallet(pass_url, data, output_path.parent)
+            qr_path = _generate_qr_code_for_wallet(pass_url, data, OUTPUT_FOLDER)
             return jsonify({
                 "success": True,
                 "filename": qr_path.name,
@@ -198,11 +209,7 @@ def generate():
 def download(filename: str):
     """Download generated .pkpass or QR code file."""
     # Use absolute path from project root
-    # app.py is at: src/wallet_card/web/app.py
-    # Need to go up 3 levels to get to project root
-    app_file = Path(__file__).resolve()
-    project_root = app_file.parent.parent.parent.parent
-    filepath = project_root / "output" / secure_filename(filename)
+    filepath = OUTPUT_FOLDER / secure_filename(filename)
     
     # Debug: log the request
     import logging
@@ -213,13 +220,12 @@ def download(filename: str):
     
     if not filepath.exists():
         # Try to find the file without secure_filename (in case it was already sanitized)
-        alt_filepath = project_root / "output" / filename
+        alt_filepath = OUTPUT_FOLDER / filename
         if alt_filepath.exists():
             filepath = alt_filepath
         else:
             # List available files for debugging
-            output_dir = project_root / "output"
-            available_files = list(output_dir.glob("*.pkpass")) if output_dir.exists() else []
+            available_files = list(OUTPUT_FOLDER.glob("*.pkpass")) if OUTPUT_FOLDER.exists() else []
             return jsonify({
                 "error": "File not found",
                 "searched_path": str(filepath),
