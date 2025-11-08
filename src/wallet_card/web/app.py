@@ -25,9 +25,18 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-producti
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
 # Use absolute paths for Vercel compatibility
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.resolve()
-UPLOAD_FOLDER = PROJECT_ROOT / "assets" / "user"
-OUTPUT_FOLDER = PROJECT_ROOT / "output"
+# In Vercel serverless, use /tmp for writable directories
+import os
+if os.environ.get("VERCEL"):
+    # Vercel serverless environment - use /tmp (only writable location)
+    UPLOAD_FOLDER = Path("/tmp") / "assets" / "user"
+    OUTPUT_FOLDER = Path("/tmp") / "output"
+else:
+    # Local development - use project root
+    PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.resolve()
+    UPLOAD_FOLDER = PROJECT_ROOT / "assets" / "user"
+    OUTPUT_FOLDER = PROJECT_ROOT / "output"
+
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 # Ensure upload directory exists
@@ -109,8 +118,19 @@ def generate():
         # Auto-detect and use certificate if available (use absolute paths)
         cert_file = None
         key_file = None
-        cert_path = PROJECT_ROOT / "signer.pem"
-        key_path = PROJECT_ROOT / "signer.key"
+        # Determine project root based on environment
+        if os.environ.get("VERCEL"):
+            project_root = Path("/tmp")
+        else:
+            project_root = Path(__file__).parent.parent.parent.parent.resolve()
+        cert_path = project_root / "signer.pem"
+        key_path = project_root / "signer.key"
+        # Also check in actual project root (for Vercel, certs might be in repo)
+        if not cert_path.exists() and not os.environ.get("VERCEL"):
+            # Try actual project root
+            actual_root = Path(__file__).parent.parent.parent.parent.resolve()
+            cert_path = actual_root / "signer.pem"
+            key_path = actual_root / "signer.key"
         if cert_path.exists() and key_path.exists():
             cert_file = str(cert_path)
             key_file = str(key_path)
@@ -354,9 +374,7 @@ def _generate_qr_code_for_wallet(pass_url: str, data: dict, output_dir: Path) ->
 @app.route("/api/files", methods=["GET"])
 def list_files():
     """List available .pkpass files for debugging."""
-    app_file = Path(__file__).resolve()
-    project_root = app_file.parent.parent.parent.parent
-    output_dir = project_root / "output"
+    output_dir = OUTPUT_FOLDER
     
     if not output_dir.exists():
         return jsonify({"files": [], "error": "Output directory not found"})
