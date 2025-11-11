@@ -13,6 +13,15 @@ authors = [
     {name = "Balaji Koneti", email = "koneti.balaji08@gmail.com"}
 ]
 keywords = ["apple", "wallet", "pkpass", "business-card", "digital-card"]
+dependencies = [
+    "Flask>=3.0.0",
+    "Werkzeug>=3.0.0",
+    "click>=8.1.0",
+    "pillow>=10.0.0",
+    "qrcode[pil]>=7.4.2",
+    "cryptography>=41.0.0",
+    "PyYAML>=6.0",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
