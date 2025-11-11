@@ -1,20 +1,22 @@
 """Flask web application for wallet card generator."""
 
 import os
-from flask import Flask, render_template, request, jsonify, send_file, flash, redirect, url_for
-from werkzeug.utils import secure_filename
 from pathlib import Path
+
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
+from flask import Flask, render_template, request, jsonify, send_file, flash, redirect, url_for
+from werkzeug.utils import secure_filename
+
+from ..core.validator import Validator, ValidationError
+from ..templates.bold_red import BoldRedTemplate
 from ..templates.business_card import BusinessCardTemplate
 from ..templates.classic_blue import ClassicBlueTemplate
+from ..templates.elegant_purple import ElegantPurpleTemplate
+from ..templates.minimalist_light import MinimalistLightTemplate
 from ..templates.modern_dark import ModernDarkTemplate
 from ..templates.professional_green import ProfessionalGreenTemplate
-from ..templates.elegant_purple import ElegantPurpleTemplate
-from ..templates.bold_red import BoldRedTemplate
-from ..templates.minimalist_light import MinimalistLightTemplate
 from ..utils.config_loader import ConfigLoader
-from ..core.validator import Validator, ValidationError
 
 # Get the directory where this file is located
 BASE_DIR = Path(__file__).parent
@@ -24,16 +26,20 @@ app = Flask(__name__, template_folder=str(template_path.resolve()))
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
-# Use absolute paths for Vercel compatibility
-# In Vercel serverless, use /tmp for writable directories
-import os
-if os.environ.get("VERCEL"):
-    # Vercel serverless environment - use /tmp (only writable location)
+# Absolute paths & environment detection for serverless
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.resolve()
+IS_SERVERLESS = bool(
+    os.environ.get("VERCEL")
+    or os.environ.get("VERCEL_ENV")
+    or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+)
+
+if IS_SERVERLESS:
+    # Vercel (and other serverless environments) expose /tmp as the only writable location.
     UPLOAD_FOLDER = Path("/tmp") / "assets" / "user"
     OUTPUT_FOLDER = Path("/tmp") / "output"
 else:
-    # Local development - use project root
-    PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.resolve()
+    # Local development can safely use the project directory.
     UPLOAD_FOLDER = PROJECT_ROOT / "assets" / "user"
     OUTPUT_FOLDER = PROJECT_ROOT / "output"
 
@@ -75,9 +81,9 @@ def generate():
                 file = request.files[asset_type]
                 if file and file.filename and allowed_file(file.filename):
                     filename = secure_filename(f"{asset_type}.{file.filename.rsplit('.', 1)[1].lower()}")
-                    filepath = os.path.join(UPLOAD_FOLDER, filename)
-                    file.save(filepath)
-                    assets[asset_type] = filepath
+                    filepath = UPLOAD_FOLDER / filename
+                    file.save(str(filepath))
+                    assets[asset_type] = str(filepath)
 
         # Build configuration
         config = {
@@ -118,19 +124,16 @@ def generate():
         # Auto-detect and use certificate if available (use absolute paths)
         cert_file = None
         key_file = None
-        # Determine project root based on environment
-        if os.environ.get("VERCEL"):
-            project_root = Path("/tmp")
-        else:
-            project_root = Path(__file__).parent.parent.parent.parent.resolve()
-        cert_path = project_root / "signer.pem"
-        key_path = project_root / "signer.key"
-        # Also check in actual project root (for Vercel, certs might be in repo)
-        if not cert_path.exists() and not os.environ.get("VERCEL"):
-            # Try actual project root
-            actual_root = Path(__file__).parent.parent.parent.parent.resolve()
-            cert_path = actual_root / "signer.pem"
-            key_path = actual_root / "signer.key"
+        cert_path = PROJECT_ROOT / "signer.pem"
+        key_path = PROJECT_ROOT / "signer.key"
+
+        # For serverless environments, also allow /tmp for runtime-provided certs
+        if IS_SERVERLESS:
+            tmp_cert = Path("/tmp") / "signer.pem"
+            tmp_key = Path("/tmp") / "signer.key"
+            if tmp_cert.exists() and tmp_key.exists():
+                cert_path = tmp_cert
+                key_path = tmp_key
         if cert_path.exists() and key_path.exists():
             cert_file = str(cert_path)
             key_file = str(key_path)

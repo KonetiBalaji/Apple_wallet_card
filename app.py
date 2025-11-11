@@ -1,7 +1,7 @@
 """Vercel-compatible Flask application entrypoint."""
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Get the project root directory (where app.py is located)
@@ -12,14 +12,21 @@ src_path = PROJECT_ROOT / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-# Set up paths for Vercel serverless environment
-# In serverless, we need to use /tmp for writable directories
-if os.environ.get("VERCEL"):
-    # Vercel serverless environment - use /tmp
+# Detect if we are running inside a serverless environment (Vercel/AWS Lambda)
+IS_SERVERLESS = bool(
+    os.environ.get("VERCEL")
+    or os.environ.get("VERCEL_ENV")
+    or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+)
+
+# Set up paths for serverless vs. local environments
+if IS_SERVERLESS:
+    # Serverless environments have a read-only project directory.
+    # /tmp is the only writable location and is reset on every invocation.
     output_dir = Path("/tmp") / "output"
     assets_dir = Path("/tmp") / "assets" / "user"
 else:
-    # Local development
+    # Local development can write inside the project directory.
     output_dir = PROJECT_ROOT / "output"
     assets_dir = PROJECT_ROOT / "assets" / "user"
 

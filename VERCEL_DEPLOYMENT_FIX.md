@@ -46,11 +46,17 @@
 
 1. **Environment Detection**
    ```python
-   if os.environ.get("VERCEL"):
-       # Use /tmp for writable files
+   IS_SERVERLESS = bool(
+       os.environ.get("VERCEL")
+       or os.environ.get("VERCEL_ENV")
+       or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+   )
+
+   if IS_SERVERLESS:
+       # Use /tmp for writable files in serverless environments
        OUTPUT_FOLDER = Path("/tmp") / "output"
    else:
-       # Local development
+       # Local development can use the project directory
        OUTPUT_FOLDER = PROJECT_ROOT / "output"
    ```
 
@@ -180,7 +186,11 @@
 
 1. **Always detect environment**
    ```python
-   is_vercel = os.environ.get("VERCEL")
+   is_serverless = bool(
+       os.environ.get("VERCEL")
+       or os.environ.get("VERCEL_ENV")
+       or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+   )
    ```
 
 2. **Use absolute paths**
